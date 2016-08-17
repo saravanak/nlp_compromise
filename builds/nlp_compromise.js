@@ -2417,6 +2417,7 @@ var fns = _dereq_('../fns.js');
 //   any_many: true,
 // }
 
+
 var parse_term = function parse_term(term, i) {
   term = term || '';
   term = term.trim();
@@ -2480,6 +2481,7 @@ var parse_term = function parse_term(term, i) {
 };
 // console.log(parse_term('(one|1) (two|2)'));
 
+
 //turn a match string into an array of objects
 var parse_all = function parse_all(regs) {
   regs = regs || [];
@@ -2534,6 +2536,7 @@ var change_tense = function change_tense(s, tense) {
 //   'john always walks',
 //   'will you walk?',
 // ];
+
 
 module.exports = change_tense;
 
@@ -2614,6 +2617,8 @@ module.exports = passive_voice;
 },{}],34:[function(_dereq_,module,exports){
 'use strict';
 
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
 var pos = _dereq_('./parts_of_speech');
 
 //set the part-of-speech of a particular term
@@ -2621,6 +2626,10 @@ var assign = function assign(t, tag, reason) {
   //check if redundant, first
   if (t.pos[tag]) {
     return t;
+  }
+  if ((typeof tag === 'undefined' ? 'undefined' : _typeof(tag)) == 'object') {
+    t.text = tag.synonym;
+    tag = tag.tag;
   }
   var P = pos.classMapping[tag] || pos.Term;
   var expansion = t.expansion;
@@ -3556,6 +3565,7 @@ var grammar_rules = _dereq_('./rules/grammar_rules');
 var fns = _dereq_('../../../fns');
 // const match = require('../../match/match');
 
+
 //tests a subset of terms against a array of tags
 var hasTags = function hasTags(terms, tags) {
   if (terms.length !== tags.length) {
@@ -4224,6 +4234,9 @@ var specific_noun = function specific_noun(terms) {
 var tagger = function tagger(s, options) {
   //word-level rules
   s.terms = capital_signals(s.terms);
+  if (s.options && s.options.afterWordLevels) {
+    s.terms = s.options.afterWordLevels[0](s.terms);
+  }
   s.terms = lexicon_pass(s.terms, options);
   s.terms = multiple_pass(s.terms);
   s.terms = regex_pass(s.terms);
@@ -4382,6 +4395,7 @@ module.exports = Question;
 },{"../sentence.js":60,"./question_form":58}],58:[function(_dereq_,module,exports){
 'use strict';
 //classifies a question into:
+
 var yesNoTerm = _dereq_('./yesNo.js');
 var easyForm = _dereq_('./easyForm.js');
 var hardForm = _dereq_('./hardForm.js');
@@ -4496,6 +4510,8 @@ var Sentence = function () {
   function Sentence(str, options) {
     _classCallCheck(this, Sentence);
 
+    this.taggerToUse = options ? options.tagger || tagger : tagger;
+    this.options = options;
     this.str = '';
     if (typeof str === 'string') {
       this.str = str;
@@ -4525,7 +4541,7 @@ var Sentence = function () {
     }
     // console.log(this.terms);
     //part-of-speech tagging
-    this.terms = tagger(this, options);
+    this.terms = this.taggerToUse(this, options);
     // process contractions
     //now the hard part is already done, just flip them
     this.contractions = {
@@ -4602,7 +4618,7 @@ var Sentence = function () {
   }, {
     key: 'tag',
     value: function tag() {
-      this.terms = tagger(this);
+      this.terms = this.taggerToUse(this);
       return this.terms;
     }
 
@@ -4958,7 +4974,6 @@ var negate = function negate(s) {
 
       //different rule for i/we/they/you + infinitive
       //that is, 'i walk' -> 'i don\'t walk', not 'I not walk'
-
       var isPronounAndInfinitive = function isPronounAndInfinitive() {
         if (s.terms[i - 1]) {
           var p = s.terms[i - 1].text;
@@ -5638,7 +5653,7 @@ var is_acronym = function is_acronym(str) {
     return true;
   }
   //like NDA
-  if (str.match(/[A-Z]{3}$/)) {
+  if (str.match(/[A-Z]{2,}$/)) {
     return true;
   }
   return false;
