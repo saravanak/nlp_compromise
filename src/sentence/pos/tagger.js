@@ -57,6 +57,9 @@ const specific_noun = function(terms) {
 const tagger = function(s, options) {
   //word-level rules
   s.terms = capital_signals(s.terms);
+  if(s.options && s.options.afterWordLevels) {
+    s.terms = s.options.afterWordLevels[0](s.terms);
+  }
   s.terms = lexicon_pass(s.terms, options);
   s.terms = multiple_pass(s.terms);
   s.terms = regex_pass(s.terms);

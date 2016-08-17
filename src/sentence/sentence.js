@@ -16,6 +16,8 @@ let tokenize_match = function() {};
 class Sentence {
 
   constructor(str, options) {
+    this.taggerToUse = options ? options.tagger || tagger  : tagger ;
+    this.options = options;
     this.str = '';
     if (typeof str === 'string') {
       this.str = str;
@@ -45,7 +47,7 @@ class Sentence {
     }
     // console.log(this.terms);
     //part-of-speech tagging
-    this.terms = tagger(this, options);
+    this.terms = this.taggerToUse(this, options);
     // process contractions
     //now the hard part is already done, just flip them
     this.contractions = {
@@ -104,7 +106,7 @@ class Sentence {
 
   //part-of-speech assign each term
   tag() {
-    this.terms = tagger(this);
+    this.terms = this.taggerToUse(this);
     return this.terms;
   }
 

@@ -7,6 +7,10 @@ const assign = function (t, tag, reason) {
   if (t.pos[tag]) {
     return t;
   }
+  if( typeof tag === 'object'){
+    t.text = tag.synonym;
+    tag = tag.tag;
+  }
   let P = pos.classMapping[tag] || pos.Term;
   let expansion = t.expansion;
   let whitespace = t.whitespace;
